@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#include "..\Kobus712\hardware\src\include\types.h"
+#include "types.h"
 
 #define BINPROT_DLE (0xf1)
 #define BINPROT_EXT (0xf2)
