@@ -55,6 +55,7 @@ extern "C" {
 
 #include "types.h"
 
+//Управляющие протоколом символы
 #define BINPROT_DLE (0xf1)
 #define BINPROT_EXT (0xf2)
 #define BINPROT_DXT (0xf3)
@@ -65,62 +66,97 @@ extern "C" {
 //<DXT> = <DXT>
 
 //ограничение на случай шума в линии - должно быть в 2 раза меньше размера буфера, и не может быть больше 32000
-/*#ifdef BAZA_SOFT
-#define BINPROT_MAX_SIZE_OF_RECIEVED_PACKET (2048)
-#else
-#define BINPROT_MAX_SIZE_OF_RECIEVED_PACKET (245)
-#endif  */
-
 extern int BINPROT_MAX_SIZE_OF_RECIEVED_PACKET;
 
+//По умолчанию принимается SMALL, если нужен BIG - надо определить BINPROT_BIG_PACKET
 //#define BINPROT_BIG_PACKET
-//SMALL <DLE><Header><data><EXT>
-//BIG   <EXT><DLE><Header><data><DLE><EXT>
+//SMALL: <DLE><Header><data><crc><EXT>
+//BIG:   <EXT><DLE><Header><data><crc><DLE><EXT>
 
 struct TBP_Header{
 	char Type;           	//тип пакета (в общем случае условная буква)
-	unsigned char Serial; 	//серийный номер КОБУС (255-Broadcast)
+    unsigned char Serial; 	//серийный номер устройства (255-Broadcast)
 };
 
 typedef struct{
 	char Type;           	//тип пакета (в общем случае условная буква)
-	unsigned char Serial; 	//серийный номер КОБУС (255-Broadcast)
-	unsigned char Data[1];	//условнае данные
+    unsigned char Serial; 	//серийный номер устройства (255-Broadcast)
+    unsigned char Data[1];	//условные данные
 }TBP_Pack;
 
-//следует присвоить серийный номер, все пакеты кроме этого и 255 будут игнорироваться,
-//если BP_MY_SERIAL=0 то принимаются все пакеты...
+typedef void (FGlobalSendChar)(unsigned char c);
+
+//следует присвоить серийный номер, все пакеты с адресом кроме этого и 255 будут игнорироваться,
+//если BP_MY_SERIAL=0 то принимаются все пакеты.
 //автоматически инициализируется через функцию BP_Init_Protocol
 extern unsigned char BP_MY_SERIAL;
 
 //переработка пакета и отсылка его
-void BP_SendPack(char Type,unsigned char Serial,const void *Data,unsigned short Len);
-//Serial=BP_MY_SERIAL затем переработка пакета и отсылка его
-void BP_SendMyPack(char Type,const void *Data,unsigned short Len);
 //к данным автоматически присоединяется CRC
+void BP_SendPack(char Type,unsigned char Serial,const void *Data,unsigned short Len);
 
-typedef void (FGlobalSendChar)(unsigned char c);
+//Serial=BP_MY_SERIAL затем переработка пакета и отсылка его
+//к данным автоматически присоединяется CRC
+void BP_SendMyPack(char Type,const void *Data,unsigned short Len);
+
+
 //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
+//основная инициализирующая функция. На входе буфер для приема пакетов, серийник и отсылающая функция
 bool BP_Init_Protocol(void *Buf,unsigned short Len,unsigned char MySerial,FGlobalSendChar *GlobalSendChar);
+
 //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
+//На входе применый буфер, серийник, и буфер для отсылки
+//Вместо непосредственного вызова отсылающей функции пишет получившиеся данные в указанный буфер.
+//Извлекать данные из буфера можно через BP_GetAndClearInternalBufferSize() и BP_InternalBuf
 bool BP_Init_Protocol_InternalBuffer(void *Buf_receive,unsigned short Len_rec,unsigned char MySerial,void *Buf_send,unsigned short Len_send);
+
 //Должна вызываться при приеме байта где-то извне
 void BP_ReceiveChar(unsigned char c);
-// true если в буфере есть целый пакет
+
+// true если в приемном буфере есть целый пакет
 bool BP_IsPackReceived(void);
 
+
+//Важно отметить что пакеты НЕ ВЫРОВНЕННЫ в памяти по границам слов
+//Если используется архитектура ARM - нужен или побайтовый доступ или коипирование данных
+
+//Даёт указатель на пакет (но не удаляет его)
 //Len = 2+data_length для Packet.  Т.е. пакета без данных len=2
-//Len = data_length для Data
-const TBP_Pack* BP_GetPacket(unsigned short *Len);// NULL если целого пакета нет и адрес на начало пакета (после <DLE>), Len=общей длине
-const void * BP_GetData(char *Type, unsigned char *Serial, unsigned short *Len);//аналогично предыдущему дает указатель на данные
-TBP_Pack* BP_ExtractPacket(void *Mesto,unsigned short *Len);//копирует пакет в место назначения, и удаляет его из очереди
-void* BP_ExtractData(char *Type, unsigned char *Serial,void *Mesto,unsigned short *Len);//аналогично предыдущему дает указатель на данные
 //В LEN не входит CRC
+//возвращает NULL если целого пакета нет и адрес на начало пакета (после <DLE> и без управляющих символов), Len=общей длине
+//Если вместо указателй дать NULL - будут проблемы :)
+const TBP_Pack* BP_GetPacket(unsigned short *Len);
 
-//общее
-void BP_DropOnePacket(void);	//следует вызывать после обработки пакета после функций BP_GetPacket, BP_GetData
-void BP_ClearBuffer(void);	//зануляет буфер
+//Даёт указатель на данные пакета, заполняет тип и серийник через переменные (но не удаляет его)
+//Len = data_length для Data
+//В LEN не входит CRC
+//возвращает NULL если целого пакета нет
+//Если вместо указателй дать NULL - будут проблемы :)
+const void * BP_GetData(char *Type, unsigned char *Serial, unsigned short *Len);
 
+//копирует пакет в место назначения, и удаляет его из очереди
+//возвращает NULL если целого пакета нет
+//на входе Len должнабыть равна выделяемому под пакет месту, если меньше - пакет усекается,
+//если = 0 - принимается максимально возможный размер апкета.
+//Если вместо указателй дать NULL - будут проблемы :)
+TBP_Pack* BP_ExtractPacket(void *Mesto,unsigned short *Len);
+
+//копирует данные пакета в место назначения, заполняет тип и серийник через переменные и удаляет его из очереди
+//возвращает NULL если целого пакета нет
+//на входе Len должнабыть равна выделяемому под пакет месту, если меньше - пакет усекается,
+//если = 0 - принимается максимально возможный размер апкета.
+//Если вместо указателй дать NULL - будут проблемы :)
+void* BP_ExtractData(char *Type, unsigned char *Serial,void *Mesto,unsigned short *Len);
+
+
+//следует вызывать после обработки пакета после функций BP_GetPacket, BP_GetData
+void BP_DropOnePacket(void);
+
+//зануляет буфер
+//и удаляет всё что там есть
+void BP_ClearBuffer(void);
+
+//Дает размер ликвидных данных из буфера отправки и одновременно обнуляет позицию в этом буфере
 int BP_GetAndClearInternalBufferSize(void);
 extern unsigned char *BP_InternalBuf;
 

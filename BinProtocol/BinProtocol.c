@@ -122,8 +122,13 @@ int BINPROT_MAX_SIZE_OF_RECIEVED_PACKET=245;
 unsigned char BP_MY_SERIAL=0;	// принимаются все пакеты...
 
 
- unsigned char* BeginPtr=NULL;
- unsigned char* EndPtr=NULL;
+unsigned char* BeginPtr=NULL;
+unsigned char* EndPtr=NULL;
+
+static int InternalBuffSize=0;
+static int InternalBufPos=0;
+unsigned char *BP_InternalBuf=NULL;
+
 
 //Необходимо вызвать в качестве инициализации буфера - возвращает true если все параметры в норме и false если нет
 static bool BP_SetReceiveBuffer(void *Buf,unsigned short Len,unsigned char MySerial)
@@ -158,9 +163,7 @@ bool BP_Init_Protocol(void *Buf,unsigned short Len,unsigned char MySerial,FGloba
 	//c_DebugPrint_LogC(clRed,"BP_Init_Protocol: Buf=%p len=%d, serial=%d, SendChar=%p",Buf,Len,MySerial,GlSendChar);
 	return res;
 }
-static int InternalBuffSize=0;
-static int InternalBufPos=0;
-unsigned char *BP_InternalBuf=NULL;
+
 static void InternalSendChar(unsigned char c)
 {
 	if(InternalBufPos<InternalBuffSize)BP_InternalBuf[InternalBufPos++] = c;
@@ -177,7 +180,7 @@ bool BP_Init_Protocol_InternalBuffer(void *Buf_receive,unsigned short Len_rec,un
 	BP_Init_Protocol(Buf_receive,Len_rec,MySerial,InternalSendChar);
 	InternalBufPos = 0;
 	InternalBuffSize = Len_send;
-	BP_InternalBuf = Buf_send;
+    BP_InternalBuf = Buf_send;
 	return true;
 }
 #define TestSpecialSimvol(c) (c==BINPROT_DLE || c==BINPROT_EXT)
@@ -625,7 +628,7 @@ const TBP_Pack* BP_GetPacket(unsigned short *Len)
 const void * BP_GetData(char *Type, unsigned char *Serial, unsigned short *Len)
 {
 	const TBP_Pack *p=BP_GetPacket(Len);
-	if(!p){
+    if(!p){
 		*Type=0;
 		*Serial=0;
 		*Len=0;
@@ -642,7 +645,7 @@ TBP_Pack* BP_ExtractPacket(void *Mesto,unsigned short *Len)
 {
 	unsigned short PackLen,CLen,PLen;
 	const TBP_Pack *p=BP_GetPacket(&PackLen);
-	if(!p){
+    if(!p){
 		*Len=0;
 		return NULL;
 	}
