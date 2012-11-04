@@ -11,8 +11,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    ../BinProtocol/BinProtocol.c
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    ../BinProtocol/Types.h \
+    ../BinProtocol/BinProtocol.h
 
 FORMS    += mainwindow.ui
