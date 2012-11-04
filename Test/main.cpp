@@ -22,12 +22,18 @@ int main(int argc, char *argv[])
         QEventLoop loop;
         QTimer::singleShot(100, &loop, SLOT(quit()));
         loop.exec();
+
+        me.open(QIODevice::ReadWrite);
     }else{
         qDebug()<<"We are child...";
         isChild = true;
+
+
+
+
     }
 
-    MainWindow w(isChild);
+    MainWindow w(isChild,&me);
     w.show();
 
 
