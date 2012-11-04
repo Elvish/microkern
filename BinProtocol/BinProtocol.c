@@ -36,73 +36,75 @@
 #include <string.h>
 #include "BinProtocol.h"
 
-//#define NULL 0//((void*)0)
 
-//#define DEBUG2
-//#define DEBUG
-//#define SUPERDEBUG
-//#define DEBUG_SEND
+// Далее следует отладочные переменные, которые никому никогда не нужны
+    //#define NULL 0//((void*)0)
 
-//#define DEBUGCRITICAL
-//#define DEBUG_OTLADKA    //для синхронизации с отсыльщиком пакетов
+    //#define DEBUG2
+    //#define DEBUG
+    //#define SUPERDEBUG
+    //#define DEBUG_SEND
 
-#ifndef DEBUGCRITICAL							
-#ifdef DEBUG2
-#define DEBUGCRITICAL
-#endif
-#ifdef DEBUG
-#define DEBUGCRITICAL
-#endif
-#ifdef SUPERDEBUG
-#define DEBUGCRITICAL
-#endif
-#endif
+    //#define DEBUGCRITICAL
+    //#define DEBUG_OTLADKA    //для синхронизации с отсыльщиком пакетов
 
-
-void log_printfi(char *c);
-#ifdef DEBUG
-#define log_printf(m,c) log_printfi(c)
-#else
-#define log_printf(m,c)
-#endif
-
-/*#undef log_printf(c)
-#include "VP_logger.h"
-#undef log_printf2
-#undef log_printfc
-#undef log_printfi
-//#define log_printf_std log_printf
-//#define log_printf(c)
-*/
-
-#ifdef DEBUGCRITICAL
-#include <stdio.h>
-#define log_printfc(c) log_printfi(c)
-#else
-#define log_printfc(c)
-#endif
-
-#ifdef DEBUG2
-#define log_printf2(c) log_printfi(c)
-#else
-#define log_printf2(c)
-#endif
-
-#ifdef DEBUG
-char DEBUG_buffer[1024];
-#include <stdio.h>
-#endif
-
-#ifdef DEBUG2
-char DEBUG_buffer2[1024];
-#include <stdio.h>
-#endif
+    #ifndef DEBUGCRITICAL
+    #ifdef DEBUG2
+    #define DEBUGCRITICAL
+    #endif
+    #ifdef DEBUG
+    #define DEBUGCRITICAL
+    #endif
+    #ifdef SUPERDEBUG
+    #define DEBUGCRITICAL
+    #endif
+    #endif
 
 
+    void log_printfi(char *c);
+    #ifdef DEBUG
+    #define log_printf(m,c) log_printfi(c)
+    #else
+    #define log_printf(m,c)
+    #endif
 
-typedef unsigned int TColor ;
-void c_DebugPrint_LogC(TColor col,const char *format,...);
-#define clRed (63488)
+    /*#undef log_printf(c)
+    #include "VP_logger.h"
+    #undef log_printf2
+    #undef log_printfc
+    #undef log_printfi
+    //#define log_printf_std log_printf
+    //#define log_printf(c)
+    */
+
+    #ifdef DEBUGCRITICAL
+    #include <stdio.h>
+    #define log_printfc(c) log_printfi(c)
+    #else
+    #define log_printfc(c)
+    #endif
+
+    #ifdef DEBUG2
+    #define log_printf2(c) log_printfi(c)
+    #else
+    #define log_printf2(c)
+    #endif
+
+    #ifdef DEBUG
+    char DEBUG_buffer[1024];
+    #include <stdio.h>
+    #endif
+
+    #ifdef DEBUG2
+    char DEBUG_buffer2[1024];
+    #include <stdio.h>
+    #endif
+
+    typedef unsigned int TColor ;
+    void c_DebugPrint_LogC(TColor col,const char *format,...);
+    #define clRed (63488)
+
+// выше были отладочные переменные, которые никому никогда не нужны и не влияют на ход выполнения программы
 
 
 int BINPROT_MAX_SIZE_OF_RECIEVED_PACKET=245;
@@ -136,7 +138,6 @@ static bool BP_SetReceiveBuffer(void *Buf,unsigned short Len,unsigned char MySer
 	//if(MySerial == 255)return false;
 	//если MySerial == 255 прием только broadcast пакетов
 	if(Len>2000)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 900;
-	if(Len<3000)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 900;
 	if(Len<2000)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 600;
 	if(Len<1500)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 450;
 	if(Len<1000)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 270;
@@ -190,7 +191,10 @@ bool BP_Init_Protocol_InternalBuffer(void *Buf_receive,unsigned short Len_rec,un
 #define ROLB(c) {c=(c<<1) | ((c&0x80)?0x01:0);}
 
 
-
+//Способы расчета CRC... Есть разные способы, кроме оригинального CRC8 :)
+//Эти методы были протестированны на способность перехвата типичных ошибок канального уровня
+//лучшим оказался "mode 19"
+//сравение его с CRC8 в планах на будущее
 
 // mode 1
 //#define CRC_VARS 	unsigned char CRC_xor=0
@@ -683,7 +687,7 @@ void* BP_ExtractData(char *Type, unsigned char *Serial,void *Mesto,unsigned shor
 	*Len = PackLen - sizeof(struct TBP_Header);
 	if(Type)*Type = p->Type;
 	if(Serial)*Serial = p->Serial;
-	BP_DropOnePacket();
+    BP_DropOnePacket();
 	return Mesto;
 }
 
