@@ -65,6 +65,8 @@ void MainWindow::on_ButtonWrite_clicked()
 
 void MainWindow::on_ButtonRead_clicked()
 {
+    QString t = "BugagaText";
+    writeToOtherSlow(t.toAscii(),strlen(t.toAscii()));
 }
 
 void MainWindow::acceptConnection()
@@ -113,6 +115,20 @@ void MainWindow::displayError(QAbstractSocket::SocketError socketError)
 
     tcpClient->close();
     tcpServer->close();
+}
+
+void MainWindow::writeToOtherSlow(const char *data, int len)
+{
+    QTcpSocket *sock = isChild?tcpClient:tcpServerConnection;
+    if(!sock)return;
+    for(;len>0;len--){
+        sock->write(data++,1);
+        sock->flush();
+
+        QEventLoop loop;
+        QTimer::singleShot(1, &loop, SLOT(quit()));
+        loop.exec();
+    }
 }
 
 

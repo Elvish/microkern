@@ -60,7 +60,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Read</string>
+     <string>WriteSlow</string>
     </property>
    </widget>
   </widget>

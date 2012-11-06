@@ -31,6 +31,9 @@ private slots:
     void displayError(QAbstractSocket::SocketError);
 
 private:
+    void writeToOtherSlow(const char *data,int len);
+
+
     bool isChild;
     QProcess *prgChild;
     Ui::MainWindow *ui;
