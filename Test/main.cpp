@@ -7,6 +7,8 @@
 #include <QMessageBox>
 
 
+MainWindow *LinkToSendClass=NULL;
+
 int main(int argc, char *argv[])
 {
     QTextCodec::setCodecForLocale( QTextCodec::codecForName("ANSI") );
@@ -21,11 +23,11 @@ int main(int argc, char *argv[])
     QTcpSocket tcpClient;
 
 
-    QProcess me;
     QStringList myarg = a.arguments();
 
     QHostAddress host=localHost;
     quint16 port=0;
+    QProcess me;//когда кончится область видимости - тогда и прога канет всуе
 
 
     if(!myarg.contains("-child")){
@@ -39,8 +41,9 @@ int main(int argc, char *argv[])
 
         qDebug()<<argums;
 
-        me.start(a.applicationFilePath(),argums);
+        if(!myarg.contains("-didicated"))me.start(a.applicationFilePath(),argums);
         me.waitForStarted(1000);
+
         //спим 100 мс, чтобы наше окно было созданно позже
         //QEventLoop loop;
         //QTimer::singleShot(100, &loop, SLOT(quit()));
@@ -69,7 +72,8 @@ int main(int argc, char *argv[])
 
     }
 
-    MainWindow w(isChild,&me,&tcpServer,&tcpClient);
+    MainWindow w(isChild,&tcpServer,&tcpClient);
+    LinkToSendClass = &w;
     w.show();
 
 

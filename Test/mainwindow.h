@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(bool _isChild, QProcess *_prgChild, QTcpServer *_TcpServer,QTcpSocket *_TcpSocket, QWidget *parent = 0);
+    explicit MainWindow(bool _isChild, QTcpServer *_TcpServer,QTcpSocket *_TcpSocket, QWidget *parent = 0);
     ~MainWindow();
     
 private slots:
@@ -30,12 +30,16 @@ private slots:
     void ReadFromParent();
     void displayError(QAbstractSocket::SocketError);
 
+
+public:
+    void writeToOtherSlow(const  char *data,int len);
+    void writeToOtherSlow(const unsigned char *data,int len)
+        {writeToOtherSlow((const char *)data,len);}
+
 private:
-    void writeToOtherSlow(const char *data,int len);
 
 
     bool isChild;
-    QProcess *prgChild;
     Ui::MainWindow *ui;
     void WriteLog(QString what, QString message);
 
@@ -43,6 +47,11 @@ private:
     QTcpSocket *tcpClient;
     QTcpSocket *tcpServerConnection;
 
+
+
+
+    void initBinProtocol();
+    void receiveOneByte(char b);
 };
 
 #endif // MAINWINDOW_H

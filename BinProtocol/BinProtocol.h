@@ -91,15 +91,6 @@ typedef void (FGlobalSendChar)(unsigned char c);
 //автоматически инициализируется через функцию BP_Init_Protocol
 extern unsigned char BP_MY_SERIAL;
 
-//переработка пакета и отсылка его
-//к данным автоматически присоединяется CRC
-void BP_SendPack(char Type,unsigned char Serial,const void *Data,unsigned short Len);
-
-//Serial=BP_MY_SERIAL затем переработка пакета и отсылка его
-//к данным автоматически присоединяется CRC
-void BP_SendMyPack(char Type,const void *Data,unsigned short Len);
-
-
 //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
 //основная инициализирующая функция. На входе буфер для приема пакетов, серийник и отсылающая функция
 bool BP_Init_Protocol(void *Buf,unsigned short Len,unsigned char MySerial,FGlobalSendChar *GlobalSendChar);
@@ -117,7 +108,17 @@ void BP_ReceiveChar(unsigned char c);
 bool BP_IsPackReceived(void);
 
 
-//Важно отметить что пакеты НЕ ВЫРОВНЕННЫ в памяти по границам слов
+
+//переработка пакета и отсылка его
+//к данным автоматически присоединяется CRC
+void BP_SendPack(char Type,unsigned char Serial,const void *Data,unsigned short Len);
+
+//Serial=BP_MY_SERIAL затем переработка пакета и отсылка его
+//к данным автоматически присоединяется CRC
+void BP_SendMyPack(char Type,const void *Data,unsigned short Len);
+
+
+//Важно отметить, что получаемые пакеты НЕ ВЫРОВНЕННЫ в памяти по границам слов
 //Если используется архитектура ARM - нужен или побайтовый доступ или коипирование данных
 
 //Даёт указатель на пакет (но не удаляет его)

@@ -4,14 +4,15 @@
 #include <QtCore>
 #include <iostream>
 #include <QMessageBox>
+#include <QScrollBar>
+#include "../BinProtocol/BinProtocol.h"
 
 
-MainWindow::MainWindow(bool _isChild, QProcess *_prgChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSocket, QWidget *parent) :
+MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSocket, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     isChild = _isChild;
-    prgChild = _prgChild;
     tcpServer = _TcpServer;
     tcpClient = _TcpSocket;
     tcpServerConnection = NULL;
@@ -52,7 +53,10 @@ void MainWindow::WriteLog(QString what, QString message)
     ui->tableWidget->setItem(r,0,new QTableWidgetItem(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
     ui->tableWidget->setItem(r,1,new QTableWidgetItem(what));
     ui->tableWidget->setItem(r,2,new QTableWidgetItem(message));
+    ui->tableWidget->verticalScrollBar()->setValue(ui->tableWidget->verticalScrollBar()->maximum());
 }
+
+
 void MainWindow::on_ButtonWrite_clicked()
 {
     if(isChild){
@@ -85,8 +89,10 @@ void MainWindow::ReadFromChild()
     memset(data,0,sizeof(data));
     int s;
 
-    //bytesReceived += (int)tcpServerConnection->bytesAvailable();
     s = tcpServerConnection->read(data,sizeof(data)-1);
+
+    //Передача полученных байт в бин-протокол
+    for(int i=0;i<s;i++)receiveOneByte(data[i]);
 
     WriteLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
 
@@ -100,6 +106,9 @@ void MainWindow::ReadFromParent()
     int s;
 
     s = tcpClient->read(data,sizeof(data)-1);
+
+    //Передача полученных байт в бин-протокол
+    for(int i=0;i<s;i++)receiveOneByte(data[i]);
 
     WriteLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
 
@@ -126,9 +135,39 @@ void MainWindow::writeToOtherSlow(const char *data, int len)
         sock->flush();
 
         QEventLoop loop;
-        QTimer::singleShot(1, &loop, SLOT(quit()));
+        QTimer::singleShot(10, &loop, SLOT(quit()));
         loop.exec();
     }
+}
+
+
+//Выделяемая для BinProtocol память.
+static char receivedBuffer[1024];
+
+//Грязный хак перехода от классовой модели к функциональной-контроллерной
+//глобвальная переменная с указателем на класс, могущий переслать данные
+extern MainWindow *LinkToSendClass;
+
+
+void globalSendCharToExternal(unsigned char c)
+{
+    LinkToSendClass->writeToOtherSlow(&c,1);
+}
+
+void MainWindow::initBinProtocol()
+{
+    //Будут приниматься пакеты только с адресом 1 или 255.
+    int serial = 1;
+
+    //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
+    //основная инициализирующая функция. На входе буфер для приема пакетов, серийник и отсылающая функция
+    BP_Init_Protocol(receivedBuffer,sizeof(receivedBuffer),serial,globalSendCharToExternal);
+
+}
+
+void MainWindow::receiveOneByte(char b)
+{
+    BP_ReceiveChar(b);
 }
 
 

@@ -16,6 +16,7 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     ../BinProtocol/Types.h \
-    ../BinProtocol/BinProtocol.h
+    ../BinProtocol/BinProtocol.h \
+    PackTypes.h
 
 FORMS    += mainwindow.ui
