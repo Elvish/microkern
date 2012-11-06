@@ -12,11 +12,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    ../BinProtocol/BinProtocol.c
+    ../BinProtocol/BinProtocol.c \
+    paintbox.cpp
 
 HEADERS  += mainwindow.h \
     ../BinProtocol/Types.h \
     ../BinProtocol/BinProtocol.h \
-    PackTypes.h
+    PackTypes.h \
+    paintbox.h
 
 FORMS    += mainwindow.ui
