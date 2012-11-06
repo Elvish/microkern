@@ -3,14 +3,18 @@
 #include <QDateTime>
 #include <QtCore>
 #include <iostream>
+#include <QMessageBox>
 
 
-MainWindow::MainWindow(bool _isChild, QProcess *_prgChild, QWidget *parent) :
+MainWindow::MainWindow(bool _isChild, QProcess *_prgChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSocket, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     isChild = _isChild;
     prgChild = _prgChild;
+    tcpServer = _TcpServer;
+    tcpClient = _TcpSocket;
+    tcpServerConnection = NULL;
     ui->setupUi(this);
     ui->tableWidget->setColumnCount(3);
     ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem(tr("Время")));
@@ -22,6 +26,12 @@ MainWindow::MainWindow(bool _isChild, QProcess *_prgChild, QWidget *parent) :
     QRect np(r.width()*3/2+sdvig,r.height()/2,r.width(),r.height());
     setGeometry(np);
     //move(pos().x + (isChild?1:0)*(10 + frameGeometry().width()), pos().y());
+
+
+    if(tcpServer)connect(tcpServer, SIGNAL(newConnection()),this, SLOT(acceptConnection()));
+    if(tcpClient)connect(tcpClient, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
+    if(tcpClient)connect(tcpClient, SIGNAL(readyRead()),this, SLOT(ReadFromParent()));
+
 
 }
 
@@ -46,53 +56,63 @@ void MainWindow::WriteLog(QString what, QString message)
 void MainWindow::on_ButtonWrite_clicked()
 {
     if(isChild){
-        //fprintf(stdout,"fprintf out ");
-        std::cout << " cout ";
-        std::cout.flush();
+        tcpClient->write("childW",6);
     }else{
-        prgChild->write("Test1",5);
-        prgChild->waitForBytesWritten(10);
+        if(tcpServerConnection)tcpServerConnection->write("parrentW",8);
     }
 
 }
 
 void MainWindow::on_ButtonRead_clicked()
 {
+}
+
+void MainWindow::acceptConnection()
+{
+    tcpServerConnection = tcpServer->nextPendingConnection();
+         connect(tcpServerConnection, SIGNAL(readyRead()),this, SLOT(ReadFromChild()));
+         connect(tcpServerConnection, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
+
+         WriteLog("tcp_server","Accepted connection");
+         tcpServer->close();
+}
+
+void MainWindow::ReadFromChild()
+{
     char data[200];
     memset(data,0,sizeof(data));
     int s;
-    if(isChild){
 
-        QFile stdIn;
-        stdIn.open(stdin, QIODevice::ReadOnly);
-        s =stdIn.read(data,sizeof(data)-1);
+    //bytesReceived += (int)tcpServerConnection->bytesAvailable();
+    s = tcpServerConnection->read(data,sizeof(data)-1);
 
-        /*
-
-        QTextStream tin(stdin);
-        //QDataStream in(tin.device());
-        //s = in.readRawData(data,sizeof(data)-1);
-
-        if(tin.atEnd()){
-            WriteLog("Read","END");
-            return;
-        }
-
-        std::cout << " before ";
-        std::cout.flush();
-
-        QString str = tin.read(50);
-
-        std::cout << " after ";
-        std::cout.flush();
-
-        s = strlen(str.toAscii());
-        memcpy(data,str.toAscii(),s);*/
-    }else{
-        s = prgChild->read(data,sizeof(data)-1);
-    }
     WriteLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
+
+
 }
 
+void MainWindow::ReadFromParent()
+{
+    char data[200];
+    memset(data,0,sizeof(data));
+    int s;
+
+    s = tcpClient->read(data,sizeof(data)-1);
+
+    WriteLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
+
+}
+
+void MainWindow::displayError(QAbstractSocket::SocketError socketError)
+{
+    if (socketError == QTcpSocket::RemoteHostClosedError) return;
+
+    QMessageBox::information(this, tr("Network error"),
+                             tr("The following error occurred: %1.")
+                             .arg(tcpClient->errorString()));
+
+    tcpClient->close();
+    tcpServer->close();
+}
 
 
