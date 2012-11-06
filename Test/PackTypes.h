@@ -3,16 +3,16 @@
 
 #include <QtCore>
 
-struct {
+struct TPackDraw{
     int x;
     int y;
     int radius;
-}TPackDraw;
+};
 
 
-struct {
+struct TPackColor{
     QColor color;
-}TPackColor;
+};
 
 
 
