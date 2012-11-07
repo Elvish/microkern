@@ -28,6 +28,9 @@ public slots:
 protected:
     void paintEvent(QPaintEvent *event);
     void drawLines(QPainter *qp);
+    void drawPalitra(QPainter *qp);
+    QColor getColorByXY(int x, int y);
+
 
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
@@ -35,6 +38,7 @@ protected:
 
     ListHoldObjects listHO;
     QTimer *timerPress;
+    QColor currentColor;
 
 };
 
