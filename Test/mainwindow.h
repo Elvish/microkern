@@ -19,17 +19,16 @@ public:
     ~MainWindow();
     
 private slots:
-    void on_pushButton_clicked();
-
-    void on_ButtonWrite_clicked();
-
-    void on_ButtonRead_clicked();
 
     void acceptConnection();
     void ReadFromChild();
     void ReadFromParent();
+    void ReadFromSocket(QTcpSocket *sock);
     void displayError(QAbstractSocket::SocketError);
 
+
+    void on_pushButtonClear_clicked();
+    void on_ButtonSendRubbish_clicked();
 
 public:
     void writeToOtherSlow(const  char *data,int len);

@@ -18,8 +18,9 @@ public:
     };
     typedef QList<HoldObject> ListHoldObjects;
 
-
     explicit PaintBox(QWidget *parent = 0);
+
+    void ClearAll();
     
 signals:
     
@@ -29,7 +30,7 @@ public slots:
 
 protected:
     void paintEvent(QPaintEvent *event);
-    void drawLines(QPainter *qp);
+    void drawObjects(QPainter *qp, const QRect &rect);
     void drawPalitra(QPainter *qp);
 
     void drawOneObject(QPainter *qp,HoldObject &obj);
@@ -39,6 +40,8 @@ protected:
 
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
+
+    void updateNearObject(HoldObject &obj);
 
 
     ListHoldObjects listHO;

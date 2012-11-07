@@ -18,6 +18,7 @@ PaintBox::PaintBox(QWidget *parent) :
     tim->start(50);
 }
 
+
 extern MainWindow *LinkToSendClass;
 void PaintBox::writeLog(QString what, QString message)
 {
@@ -28,12 +29,13 @@ void PaintBox::writeLog(QString what, QString message)
 
 void PaintBox::paintEvent(QPaintEvent *e)
 {
-  Q_UNUSED(e);
   QPainter qp(this);
-  QBrush brush(Qt::black,Qt::SolidPattern);
+  QBrush brush(Qt::black
+               //QColor(qrand())
+               ,Qt::SolidPattern);
   qp.fillRect(e->rect(),brush);
-  drawLines(&qp);
-  drawPalitra(&qp);
+  drawObjects(&qp,e->rect());
+  if(e->rect().top()<25)drawPalitra(&qp);
 }
 
 void PaintBox::drawOneObject(QPainter *qp, PaintBox::HoldObject &obj)
@@ -46,14 +48,16 @@ void PaintBox::drawOneObject(QPainter *qp, PaintBox::HoldObject &obj)
 }
 
 
-void PaintBox::drawLines(QPainter *qp)
+void PaintBox::drawObjects(QPainter *qp, const QRect &rect)
 {
-    //QPen pen(Qt::black, 1, Qt::SolidLine);
-    //QBrush brush(Qt::SolidPattern);
-    //qp->setPen(pen);
-    //qp->setBrush(brush);
     foreach(HoldObject obj, listHO){
-        drawOneObject(qp,obj);
+        int r = obj.radius;
+        QRect zona = rect;
+        zona.adjust(-r,-r,r,r);
+        if(zona.contains(obj.x,obj.y)){
+            //obj.color = qrand();
+            drawOneObject(qp,obj);
+        }
     }
     if(currentObject.radius>0)drawOneObject(qp,currentObject);
 
@@ -67,7 +71,6 @@ void PaintBox::drawPalitra(QPainter *qp)
         pen.setColor(getColorByXY(x,y));
         qp->setPen(pen);
         qp->drawLine(x,y,x+1,y);
-        //qp->drawPixmap();
     }
 }
 
@@ -87,32 +90,37 @@ QColor PaintBox::getColorByXY(int x, int y)
     return QColor(holm(peace%(256*3),br),holm(peace-256,br),holm((peace-512+256*3)%(256*3),br));
 }
 
+void PaintBox::ClearAll()
+{
+    if(listHO.count() || currentObject.radius>0){
+        listHO.clear();
+        currentObject.radius = 0;
+        update();
+        BP_SendMyPack('Z',NULL,0);
+    }
+
+}
+
+
 void PaintBox::mousePressEvent(QMouseEvent *event)
 {
     if(event->y() < 20){
         currentObject.radius = 0;
-        //currentColor = getColorByXY(event->x(),event->y());
         currentObject.color = getColorByXY(event->x(),event->y());
         TPackColor packColor;
-        //packColor.color
         QColor c = getColorByXY(event->x(),event->y());
         packColor.r = c.redF();
         packColor.g = c.greenF();
         packColor.b = c.blueF();
-        //c.getRgbF(packColor.r,packColor.g,packColor.b);
         BP_SendMyPack('C',&packColor,sizeof(packColor));
         return;
     }
 
-    //return;
-
-
     currentObject.radius = 1;
     currentObject.x = event->x();
     currentObject.y = event->y();
-    //currentObject.color = currentColor;
-    //listHO.append(o);
-    update();
+    //update();
+    updateNearObject(currentObject);
 
     if(timerPress)delete timerPress;
     timerPress = new QTimer();
@@ -131,7 +139,13 @@ void PaintBox::mouseReleaseEvent(QMouseEvent *event)
         packDraw.y = currentObject.y;
         packDraw.radius = currentObject.radius;
         BP_SendMyPack('d',&packDraw,sizeof(packDraw));
+        currentObject.radius = 0;
     }
+}
+
+void PaintBox::updateNearObject(PaintBox::HoldObject &obj)
+{
+    update(obj.x - obj.radius - 10,obj.y - obj.radius - 10,obj.radius*2 + 20,obj.radius*2 + 20);
 }
 
 
@@ -140,7 +154,8 @@ void PaintBox::timerWhenPressed()
 {
     if(currentObject.radius<1)return;
     if(currentObject.radius++ > 50)if(timerPress){delete timerPress; timerPress = NULL;}
-    update();
+    //update();
+    updateNearObject(currentObject);
 }
 
 void PaintBox::timerCheckPacks()
@@ -178,10 +193,14 @@ void PaintBox::timerCheckPacks()
             obj.y = pack.draw.y;
             obj.radius = pack.draw.radius;
             listHO.append(obj);
-            update();
+            updateNearObject(obj);
             writeLog("Receive",QString("Receive object: (%1,%2),%3").arg(obj.x).arg(obj.y).arg(obj.radius));
             break;
         }
+        case 'Z':
+            writeLog("Receive",QString("Receive CLEAR command"));
+            ClearAll();
+            break;
         default:
             writeLog("Receive","ERROR get unknown packtype");
         }

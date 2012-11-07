@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     QStringList myarg = a.arguments();
 
-    QHostAddress host=localHost;
+    QHostAddress host = QHostAddress::Any;//localHost;
     quint16 port=0;
     QProcess me;//когда кончится область видимости - тогда и прога канет всуе
 
@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
         argums << "-child";
         qDebug()<<"We are parent...";
 
-        tcpServer.listen(localHost);
-        argums << "-A:" + tcpServer.serverAddress().toString();
+        tcpServer.listen();
+        argums << "-A:" + localHost.toString();
         argums << QString("-P:%1").arg(tcpServer.serverPort());
 
         qDebug()<<argums;
@@ -75,6 +75,8 @@ int main(int argc, char *argv[])
     MainWindow w(isChild,&tcpServer,&tcpClient);
     LinkToSendClass = &w;
     w.show();
+
+    w.writeLog("INIT",QString("Port:%1").arg(tcpServer.serverPort()));
 
 
     if(isChild)tcpClient.connectToHost(host, port);

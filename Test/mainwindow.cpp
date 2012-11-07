@@ -19,12 +19,14 @@ MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSo
     ui->setupUi(this);
     ui->tableWidget->setColumnCount(3);
     ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem(tr("Время")));
-    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem(tr("Событие")));
+    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem(tr("Что")));
     ui->tableWidget->setHorizontalHeaderItem(2,new QTableWidgetItem(tr("Сообщение")));
+    ui->tableWidget->setColumnWidth(0, 60);
+    ui->tableWidget->setColumnWidth(1, 40);
     ui->tableWidget->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
     QRect r = frameGeometry();
-    int sdvig = ((isChild?1:-1)*(10 + frameGeometry().width()/2 ) );
-    QRect np(r.width()*3/2+sdvig,r.height()/2,r.width(),r.height());
+    int sdvig = ((isChild?1:0)*(30 + frameGeometry().width() ) );
+    QRect np(50+sdvig,r.height()/2,r.width(),r.height());
     setGeometry(np);
     //move(pos().x + (isChild?1:0)*(10 + frameGeometry().width()), pos().y());
 
@@ -34,6 +36,8 @@ MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSo
     if(tcpClient)connect(tcpClient, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
     if(tcpClient)connect(tcpClient, SIGNAL(readyRead()),this, SLOT(ReadFromParent()));
 
+
+
 }
 
 MainWindow::~MainWindow()
@@ -41,16 +45,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    writeLog("debug","Нажали");
-}
-
 void MainWindow::writeLog(QString what, QString message)
 {
     int r = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(r+1);
-    ui->tableWidget->setItem(r,0,new QTableWidgetItem(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
+    ui->tableWidget->setItem(r,0,new QTableWidgetItem(QDateTime::currentDateTime().toString("mm:ss.zzz")));
     ui->tableWidget->setItem(r,1,new QTableWidgetItem(what));
     ui->tableWidget->setItem(r,2,new QTableWidgetItem(message));
     ui->tableWidget->verticalScrollBar()->setValue(ui->tableWidget->verticalScrollBar()->maximum());
@@ -58,17 +57,7 @@ void MainWindow::writeLog(QString what, QString message)
 }
 
 
-void MainWindow::on_ButtonWrite_clicked()
-{
-    if(isChild){
-        tcpClient->write("childW",6);
-    }else{
-        if(tcpServerConnection)tcpServerConnection->write("parrentW",8);
-    }
-
-}
-
-void MainWindow::on_ButtonRead_clicked()
+void MainWindow::on_ButtonSendRubbish_clicked()
 {
     QString t = "BugagaText";
     writeToOtherSlow(t.toAscii(),strlen(t.toAscii()));
@@ -86,39 +75,27 @@ void MainWindow::acceptConnection()
 
 void MainWindow::ReadFromChild()
 {
-    char data[200];
-    memset(data,0,sizeof(data));
-    int s;
-
-    s = tcpServerConnection->read(data,sizeof(data)-1);
-
-    //Передача полученных байт в бин-протокол
-    for(int i=0;i<s;i++)receiveOneByte(data[i]);
-
-    if(ui->checkBoxShowBytes->checkState() == Qt::Checked){
-        writeLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
-    }
-
+    ReadFromSocket(tcpServerConnection);
 }
 
 void MainWindow::ReadFromParent()
+{
+    ReadFromSocket(tcpClient);
+}
+
+void MainWindow::ReadFromSocket(QTcpSocket *sock)
 {
     char data[200];
     memset(data,0,sizeof(data));
     int s;
 
-    s = tcpClient->read(data,sizeof(data)-1);
+    s = sock->read(data,sizeof(data)-1);
 
     //Передача полученных байт в бин-протокол
     for(int i=0;i<s;i++){
         if(ui->checkBoxShowBytes->checkState() == Qt::Checked)writeLog("Read",QString("< 0x%1").arg((int)(unsigned char)data[i],2,16,QLatin1Char( '0' )));
         receiveOneByte(data[i]);
     }
-
-    //if(ui->checkBoxShowBytes->checkState() == Qt::Checked){
-    //    writeLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
-    //}
-
 }
 
 void MainWindow::displayError(QAbstractSocket::SocketError socketError)
@@ -181,4 +158,10 @@ void MainWindow::receiveOneByte(char b)
     BP_ReceiveChar(b);
 }
 
+
+
+void MainWindow::on_pushButtonClear_clicked()
+{
+    ui->paintBox->ClearAll();
+}
 
