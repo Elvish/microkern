@@ -6,11 +6,12 @@
 #include "mainwindow.h"
 #include <QMessageBox>
 
-
+//Чтобы без заморочек ссылаться на наше окошко
 MainWindow *LinkToSendClass=NULL;
 
 int main(int argc, char *argv[])
 {
+    //Подрубаем кириллицу
     QTextCodec::setCodecForLocale( QTextCodec::codecForName("ANSI") );
     QTextCodec::setCodecForCStrings( QTextCodec::codecForLocale() );
     QTextCodec::setCodecForTr( QTextCodec::codecForLocale() );
@@ -31,6 +32,8 @@ int main(int argc, char *argv[])
 
 
     if(!myarg.contains("-child")){
+        //Мы родитель или сервер
+        //Открывает сокет, запускаем ребенка
         QStringList argums;
         argums << "-child";
         qDebug()<<"We are parent...";
@@ -41,6 +44,7 @@ int main(int argc, char *argv[])
 
         qDebug()<<argums;
 
+        //С этим ключем мы не запускаем ребенка
         if(!myarg.contains("-didicated"))me.start(a.applicationFilePath(),argums);
         me.waitForStarted(1000);
 
@@ -76,9 +80,10 @@ int main(int argc, char *argv[])
     LinkToSendClass = &w;
     w.show();
 
+    //пишем порт, который слушаем на форму, чтобы знать как подключаться
     w.writeLog("INIT",QString("Port:%1").arg(tcpServer.serverPort()));
 
-
+    //воссоздаем семью из ребенка безпризорника и родителя партеногенезника
     if(isChild)tcpClient.connectToHost(host, port);
 
 

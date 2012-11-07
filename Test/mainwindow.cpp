@@ -8,13 +8,13 @@
 #include "../BinProtocol/BinProtocol.h"
 
 
-MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSocket, QWidget *parent) :
+MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpClient, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     isChild = _isChild;
     tcpServer = _TcpServer;
-    tcpClient = _TcpSocket;
+    tcpClient = _TcpClient;
     tcpServerConnection = NULL;
     ui->setupUi(this);
     ui->tableWidget->setColumnCount(3);
@@ -30,8 +30,10 @@ MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSo
     setGeometry(np);
     //move(pos().x + (isChild?1:0)*(10 + frameGeometry().width()), pos().y());
 
+    //Инициализация BinProtocol
     initBinProtocol();
 
+    //Настраиваем сокеты
     if(tcpServer)connect(tcpServer, SIGNAL(newConnection()),this, SLOT(acceptConnection()));
     if(tcpClient)connect(tcpClient, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
     if(tcpClient)connect(tcpClient, SIGNAL(readyRead()),this, SLOT(ReadFromParent()));
@@ -59,6 +61,7 @@ void MainWindow::writeLog(QString what, QString message)
 
 void MainWindow::on_ButtonSendRubbish_clicked()
 {
+    //вот такой вот нынче мусор
     QString t = "BugagaText";
     writeToOtherSlow(t.toAscii(),strlen(t.toAscii()));
 }
@@ -66,11 +69,11 @@ void MainWindow::on_ButtonSendRubbish_clicked()
 void MainWindow::acceptConnection()
 {
     tcpServerConnection = tcpServer->nextPendingConnection();
-         connect(tcpServerConnection, SIGNAL(readyRead()),this, SLOT(ReadFromChild()));
-         connect(tcpServerConnection, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
+    connect(tcpServerConnection, SIGNAL(readyRead()),this, SLOT(ReadFromChild()));
+    connect(tcpServerConnection, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
 
-         writeLog("tcp_server","Accepted connection");
-         tcpServer->close();
+    writeLog("tcp_server","Accepted connection");
+    tcpServer->close();
 }
 
 void MainWindow::ReadFromChild()
@@ -85,13 +88,10 @@ void MainWindow::ReadFromParent()
 
 void MainWindow::ReadFromSocket(QTcpSocket *sock)
 {
-    char data[200];
-    memset(data,0,sizeof(data));
-    int s;
+    char data[2048];
+    int s = sock->read(data,sizeof(data)-1);
 
-    s = sock->read(data,sizeof(data)-1);
-
-    //Передача полученных байт в бин-протокол
+    //Передача полученных байт в бин-протокол через посредника receiveOneByte
     for(int i=0;i<s;i++){
         if(ui->checkBoxShowBytes->checkState() == Qt::Checked)writeLog("Read",QString("< 0x%1").arg((int)(unsigned char)data[i],2,16,QLatin1Char( '0' )));
         receiveOneByte(data[i]);
@@ -102,8 +102,8 @@ void MainWindow::displayError(QAbstractSocket::SocketError socketError)
 {
     if (socketError == QTcpSocket::RemoteHostClosedError) return;
 
-    QMessageBox::information(this, tr("Network error"),
-                             tr("The following error occurred: %1.")
+    QMessageBox::information(this, tr("Сетевая ошибка"),
+                             tr("Непонятки с сокетами: %1.")
                              .arg(tcpClient->errorString()));
 
     tcpClient->close();
@@ -119,14 +119,31 @@ void MainWindow::writeToOtherSlow(const char *data, int len)
             writeLog("Send",QString("> 0x%2 (%1)").arg(len).arg((int)(unsigned char)*data,2,16,QLatin1Char( '0' )));
         }
         sock->write(data++,1);
+        //Отправляем по одному символу сразу, для "усложнения" разгребания пакетов
         sock->flush();
 
+        //При желании можно сделать передачу медленной...
         //QEventLoop loop;
         //QTimer::singleShot(10, &loop, SLOT(quit()));
         //loop.exec();
     }
 }
 
+void MainWindow::writeToOtherSlow(const unsigned char *data, int len)
+{
+    writeToOtherSlow((const char *)data,len);
+}
+
+
+void MainWindow::on_pushButtonClear_clicked()
+{
+    ui->paintBox->ClearAll();
+}
+
+
+//--------------------------------------------------------------------
+// Собственно нижний уровень работы с BinProtocol
+//--------------------------------------------------------------------
 
 //Выделяемая для BinProtocol память.
 static char receivedBuffer[1024];
@@ -144,7 +161,7 @@ void globalSendCharToExternal(unsigned char c)
 void MainWindow::initBinProtocol()
 {
     //Будут приниматься пакеты только с адресом 1 или 255.
-    int serial = 255;
+    int serial = 1;
 
     //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
     //основная инициализирующая функция. На входе буфер для приема пакетов, серийник и отсылающая функция
@@ -153,15 +170,10 @@ void MainWindow::initBinProtocol()
 
 }
 
+//Передача потока байт в BinProtocol
 void MainWindow::receiveOneByte(char b)
 {
     BP_ReceiveChar(b);
 }
 
-
-
-void MainWindow::on_pushButtonClear_clicked()
-{
-    ui->paintBox->ClearAll();
-}
 
