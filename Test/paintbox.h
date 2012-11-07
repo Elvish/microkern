@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QMouseEvent>
 #include <QTimer>
+#include "mainwindow.h"
 
 class PaintBox : public QWidget
 {
@@ -24,11 +25,15 @@ signals:
     
 public slots:
     void timerWhenPressed();
+    void timerCheckPacks();
 
 protected:
     void paintEvent(QPaintEvent *event);
     void drawLines(QPainter *qp);
     void drawPalitra(QPainter *qp);
+
+    void drawOneObject(QPainter *qp,HoldObject &obj);
+
     QColor getColorByXY(int x, int y);
 
 
@@ -40,6 +45,10 @@ protected:
     QTimer *timerPress;
     QColor currentColor;
 
+    HoldObject currentObject;
+
+
+    void writeLog(QString what, QString message);
 };
 
 #endif // PAINTBOX_H

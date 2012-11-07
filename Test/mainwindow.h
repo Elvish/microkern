@@ -36,12 +36,13 @@ public:
     void writeToOtherSlow(const unsigned char *data,int len)
         {writeToOtherSlow((const char *)data,len);}
 
+    void writeLog(QString what, QString message);
+
 private:
 
 
     bool isChild;
     Ui::MainWindow *ui;
-    void WriteLog(QString what, QString message);
 
     QTcpServer *tcpServer;
     QTcpSocket *tcpClient;

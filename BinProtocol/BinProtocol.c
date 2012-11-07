@@ -682,9 +682,10 @@ void* BP_ExtractData(char *Type, unsigned char *Serial,void *Mesto,unsigned shor
 		return NULL;
 	}
 	if(!Len)PLen=BINPROT_MAX_SIZE_OF_RECIEVED_PACKET;else PLen=*Len;
+    PackLen -= sizeof(struct TBP_Header);
 	CLen = (PackLen > PLen)?PLen:PackLen;
 	memcpy(Mesto,p->Data,CLen);
-	*Len = PackLen - sizeof(struct TBP_Header);
+    *Len = PackLen;// - sizeof(struct TBP_Header);
 	if(Type)*Type = p->Type;
 	if(Serial)*Serial = p->Serial;
     BP_DropOnePacket();

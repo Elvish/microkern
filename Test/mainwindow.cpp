@@ -28,6 +28,7 @@ MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpSo
     setGeometry(np);
     //move(pos().x + (isChild?1:0)*(10 + frameGeometry().width()), pos().y());
 
+    initBinProtocol();
 
     if(tcpServer)connect(tcpServer, SIGNAL(newConnection()),this, SLOT(acceptConnection()));
     if(tcpClient)connect(tcpClient, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
@@ -42,10 +43,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    WriteLog("debug","Нажали");
+    writeLog("debug","Нажали");
 }
 
-void MainWindow::WriteLog(QString what, QString message)
+void MainWindow::writeLog(QString what, QString message)
 {
     int r = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(r+1);
@@ -53,6 +54,7 @@ void MainWindow::WriteLog(QString what, QString message)
     ui->tableWidget->setItem(r,1,new QTableWidgetItem(what));
     ui->tableWidget->setItem(r,2,new QTableWidgetItem(message));
     ui->tableWidget->verticalScrollBar()->setValue(ui->tableWidget->verticalScrollBar()->maximum());
+    ui->tableWidget->update();
 }
 
 
@@ -78,7 +80,7 @@ void MainWindow::acceptConnection()
          connect(tcpServerConnection, SIGNAL(readyRead()),this, SLOT(ReadFromChild()));
          connect(tcpServerConnection, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
 
-         WriteLog("tcp_server","Accepted connection");
+         writeLog("tcp_server","Accepted connection");
          tcpServer->close();
 }
 
@@ -93,8 +95,9 @@ void MainWindow::ReadFromChild()
     //Передача полученных байт в бин-протокол
     for(int i=0;i<s;i++)receiveOneByte(data[i]);
 
-    WriteLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
-
+    if(ui->checkBoxShowBytes->checkState() == Qt::Checked){
+        writeLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
+    }
 
 }
 
@@ -107,9 +110,14 @@ void MainWindow::ReadFromParent()
     s = tcpClient->read(data,sizeof(data)-1);
 
     //Передача полученных байт в бин-протокол
-    for(int i=0;i<s;i++)receiveOneByte(data[i]);
+    for(int i=0;i<s;i++){
+        if(ui->checkBoxShowBytes->checkState() == Qt::Checked)writeLog("Read",QString("< 0x%1").arg((int)(unsigned char)data[i],2,16,QLatin1Char( '0' )));
+        receiveOneByte(data[i]);
+    }
 
-    WriteLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
+    //if(ui->checkBoxShowBytes->checkState() == Qt::Checked){
+    //    writeLog("Read",QString("Read %1 bytes: %2").arg(s).arg(QString(data)));
+    //}
 
 }
 
@@ -130,12 +138,15 @@ void MainWindow::writeToOtherSlow(const char *data, int len)
     QTcpSocket *sock = isChild?tcpClient:tcpServerConnection;
     if(!sock)return;
     for(;len>0;len--){
+        if(ui->checkBoxSendPrint->checkState() == Qt::Checked){
+            writeLog("Send",QString("> 0x%2 (%1)").arg(len).arg((int)(unsigned char)*data,2,16,QLatin1Char( '0' )));
+        }
         sock->write(data++,1);
         sock->flush();
 
-        QEventLoop loop;
-        QTimer::singleShot(10, &loop, SLOT(quit()));
-        loop.exec();
+        //QEventLoop loop;
+        //QTimer::singleShot(10, &loop, SLOT(quit()));
+        //loop.exec();
     }
 }
 
@@ -156,11 +167,12 @@ void globalSendCharToExternal(unsigned char c)
 void MainWindow::initBinProtocol()
 {
     //Будут приниматься пакеты только с адресом 1 или 255.
-    int serial = 1;
+    int serial = 255;
 
     //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
     //основная инициализирующая функция. На входе буфер для приема пакетов, серийник и отсылающая функция
-    BP_Init_Protocol(receivedBuffer,sizeof(receivedBuffer),serial,globalSendCharToExternal);
+    bool res = BP_Init_Protocol(receivedBuffer,sizeof(receivedBuffer),serial,globalSendCharToExternal);
+    writeLog("INIT",res?"Ok":"Fail");
 
 }
 

@@ -1,6 +1,8 @@
 #include <QPainter>
 #include <QTime>
 #include "paintbox.h"
+#include "PackTypes.h"
+#include "../BinProtocol/BinProtocol.h"
 
 PaintBox::PaintBox(QWidget *parent) :
     QWidget(parent)
@@ -8,14 +10,20 @@ PaintBox::PaintBox(QWidget *parent) :
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
     timerPress = NULL;
     currentColor = Qt::white;
+    currentObject.radius = 0;
+    currentObject.color = Qt::white;
+
+    QTimer *tim = new QTimer();
+    connect(tim,SIGNAL(timeout()),this,SLOT(timerCheckPacks()));
+    tim->start(50);
 }
 
-void PaintBox::timerWhenPressed()
+extern MainWindow *LinkToSendClass;
+void PaintBox::writeLog(QString what, QString message)
 {
-    if(listHO.count()<1)return;
-    if(listHO.last().radius++ > 50)if(timerPress){delete timerPress; timerPress = NULL;}
-    update();
+    LinkToSendClass->writeLog(what,message);
 }
+
 
 
 void PaintBox::paintEvent(QPaintEvent *e)
@@ -28,20 +36,26 @@ void PaintBox::paintEvent(QPaintEvent *e)
   drawPalitra(&qp);
 }
 
+void PaintBox::drawOneObject(QPainter *qp, PaintBox::HoldObject &obj)
+{
+    //QPen pen.setColor(o.color);
+    QBrush brush(obj.color,Qt::SolidPattern);
+    //qp->setPen(pen);
+    qp->setBrush(brush);
+    qp->drawEllipse(obj.x-obj.radius,obj.y-obj.radius,obj.radius*2,obj.radius*2);
+}
+
+
 void PaintBox::drawLines(QPainter *qp)
 {
-  QPen pen(Qt::black, 1, Qt::SolidLine);
-  QBrush brush(Qt::SolidPattern);
-  qp->setPen(pen);
-  qp->setBrush(brush);
-  foreach(HoldObject o, listHO){
-      pen.setColor(o.color);
-      brush.setColor(o.color);
-      qp->setPen(pen);
-      qp->setBrush(brush);
-      //qp->drawRect(o.x-o.radius,o.y+o.radius,o.radius*2,o.radius*2);
-      qp->drawEllipse(o.x-o.radius,o.y-o.radius,o.radius*2,o.radius*2);
-  }
+    //QPen pen(Qt::black, 1, Qt::SolidLine);
+    //QBrush brush(Qt::SolidPattern);
+    //qp->setPen(pen);
+    //qp->setBrush(brush);
+    foreach(HoldObject obj, listHO){
+        drawOneObject(qp,obj);
+    }
+    if(currentObject.radius>0)drawOneObject(qp,currentObject);
 
 
 }
@@ -56,6 +70,7 @@ void PaintBox::drawPalitra(QPainter *qp)
         //qp->drawPixmap();
     }
 }
+
 
 static int holm(int p,int br)
 {
@@ -75,15 +90,28 @@ QColor PaintBox::getColorByXY(int x, int y)
 void PaintBox::mousePressEvent(QMouseEvent *event)
 {
     if(event->y() < 20){
-        currentColor = getColorByXY(event->x(),event->y());
+        currentObject.radius = 0;
+        //currentColor = getColorByXY(event->x(),event->y());
+        currentObject.color = getColorByXY(event->x(),event->y());
+        TPackColor packColor;
+        //packColor.color
+        QColor c = getColorByXY(event->x(),event->y());
+        packColor.r = c.redF();
+        packColor.g = c.greenF();
+        packColor.b = c.blueF();
+        //c.getRgbF(packColor.r,packColor.g,packColor.b);
+        BP_SendMyPack('C',&packColor,sizeof(packColor));
         return;
     }
-    HoldObject o;
-    o.radius = 1;
-    o.x = event->x();
-    o.y = event->y();
-    o.color = currentColor;
-    listHO.append(o);
+
+    //return;
+
+
+    currentObject.radius = 1;
+    currentObject.x = event->x();
+    currentObject.y = event->y();
+    //currentObject.color = currentColor;
+    //listHO.append(o);
     update();
 
     if(timerPress)delete timerPress;
@@ -96,4 +124,68 @@ void PaintBox::mouseReleaseEvent(QMouseEvent *event)
 {
     if(timerPress)delete timerPress;
     timerPress = NULL;
+    if(currentObject.radius>0){
+        listHO.append(currentObject);
+        TPackDraw packDraw;
+        packDraw.x = currentObject.x;
+        packDraw.y = currentObject.y;
+        packDraw.radius = currentObject.radius;
+        BP_SendMyPack('d',&packDraw,sizeof(packDraw));
+    }
 }
+
+
+
+void PaintBox::timerWhenPressed()
+{
+    if(currentObject.radius<1)return;
+    if(currentObject.radius++ > 50)if(timerPress){delete timerPress; timerPress = NULL;}
+    update();
+}
+
+void PaintBox::timerCheckPacks()
+{
+    while(BP_IsPackReceived()){
+        writeLog("Receive","Pack Received");
+        char packType;
+        unsigned char packSerial;
+        TPackAllTypes pack;
+        unsigned short dataSize = sizeof(pack);
+
+        if(!BP_ExtractData(&packType,&packSerial,&pack,&dataSize)){
+            writeLog("Receive","ERROR ExtractPack");
+            return;
+        }
+
+        switch(packType){
+        case 'C':
+            if(dataSize!=sizeof(pack.color)) {
+                writeLog("Receive",QString("ERROR get Color pack, but different size. Should=%1, but %2").arg(sizeof(pack.color)).arg(dataSize));
+                return;
+            }
+            currentObject.color = QColor::fromRgbF(pack.color.r,pack.color.g,pack.color.b);
+
+            writeLog("Receive",QString("Receive color: %1").arg(currentObject.color.value()));
+            break;
+        case 'd':{
+            if(dataSize!=sizeof(pack.draw)) {
+                writeLog("Receive",QString("ERROR get Draw pack, but different size. Should=%1, but %2").arg(sizeof(pack.draw)).arg(dataSize));
+                return;
+            }
+            HoldObject obj;
+            obj.color = currentObject.color;
+            obj.x = pack.draw.x;
+            obj.y = pack.draw.y;
+            obj.radius = pack.draw.radius;
+            listHO.append(obj);
+            update();
+            writeLog("Receive",QString("Receive object: (%1,%2),%3").arg(obj.x).arg(obj.y).arg(obj.radius));
+            break;
+        }
+        default:
+            writeLog("Receive","ERROR get unknown packtype");
+        }
+    }
+}
+
+

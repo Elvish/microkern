@@ -1,7 +1,8 @@
 #ifndef PACKTYPES_H
 #define PACKTYPES_H
 
-#include <QtCore>
+
+#include "../BinProtocol/Types.h"
 
 struct TPackDraw{
     int x;
@@ -11,9 +12,15 @@ struct TPackDraw{
 
 
 struct TPackColor{
-    QColor color;
+    float r,g,b;
 };
 
+
+union TPackAllTypes{
+    TPackDraw draw;
+    TPackColor color;
+    unsigned char Raw[12];
+};
 
 
 #endif // PACKTYPES_H
