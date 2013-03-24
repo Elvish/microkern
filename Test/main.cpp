@@ -48,12 +48,7 @@ int main(int argc, char *argv[])
         if(!myarg.contains("-didicated"))me.start(a.applicationFilePath(),argums);
         me.waitForStarted(1000);
 
-        //спим 100 мс, чтобы наше окно было созданно позже
-        //QEventLoop loop;
-        //QTimer::singleShot(100, &loop, SLOT(quit()));
-        //loop.exec();
-
-        me.open(QIODevice::ReadWrite);
+          me.open(QIODevice::ReadWrite);
     }else{
         qDebug()<<"We are child...";
         isChild = true;
