@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         if(!myarg.contains("-didicated"))me.start(a.applicationFilePath(),argums);
         me.waitForStarted(1000);
 
-          me.open(QIODevice::ReadWrite);
+        me.open(QIODevice::ReadWrite);
     }else{
         qDebug()<<"We are child...";
         isChild = true;
