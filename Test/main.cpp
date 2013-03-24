@@ -12,7 +12,7 @@ MainWindow *LinkToSendClass=NULL;
 int main(int argc, char *argv[])
 {
     //Подрубаем кириллицу
-    QTextCodec::setCodecForLocale( QTextCodec::codecForName("ANSI") );
+    QTextCodec::setCodecForLocale( QTextCodec::codecForName("UTF8") );
     QTextCodec::setCodecForCStrings( QTextCodec::codecForLocale() );
     QTextCodec::setCodecForTr( QTextCodec::codecForLocale() );
 

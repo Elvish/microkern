@@ -153,7 +153,7 @@ static char receivedBuffer[1024];
 extern MainWindow *LinkToSendClass;
 
 
-void globalSendCharToExternal(unsigned char c)
+extern "C" void globalSendCharToExternal(unsigned char c)
 {
     LinkToSendClass->writeToOtherSlow(&c,1);
 }

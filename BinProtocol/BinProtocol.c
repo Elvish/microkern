@@ -1,4 +1,4 @@
-/*******************************************
+п»ї/*******************************************
  *
 ** Copyright (C) Kern Elvish.
 ** All rights reserved.
@@ -37,7 +37,7 @@
 #include "BinProtocol.h"
 
 
-// Далее следует отладочные переменные, которые никому никогда не нужны
+// Р”Р°Р»РµРµ СЃР»РµРґСѓРµС‚ РѕС‚Р»Р°РґРѕС‡РЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ РЅРёРєРѕРјСѓ РЅРёРєРѕРіРґР° РЅРµ РЅСѓР¶РЅС‹
     //#define NULL 0//((void*)0)
 
     //#define DEBUG2
@@ -46,7 +46,7 @@
     //#define DEBUG_SEND
 
     //#define DEBUGCRITICAL
-    //#define DEBUG_OTLADKA    //для синхронизации с отсыльщиком пакетов
+    //#define DEBUG_OTLADKA    //РґР»СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёРё СЃ РѕС‚СЃС‹Р»СЊС‰РёРєРѕРј РїР°РєРµС‚РѕРІ
 
     #ifndef DEBUGCRITICAL
     #ifdef DEBUG2
@@ -104,7 +104,7 @@
     void c_DebugPrint_LogC(TColor col,const char *format,...);
     #define clRed (63488)
 
-// выше были отладочные переменные, которые никому никогда не нужны и не влияют на ход выполнения программы
+// РІС‹С€Рµ Р±С‹Р»Рё РѕС‚Р»Р°РґРѕС‡РЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ РЅРёРєРѕРјСѓ РЅРёРєРѕРіРґР° РЅРµ РЅСѓР¶РЅС‹ Рё РЅРµ РІР»РёСЏСЋС‚ РЅР° С…РѕРґ РІС‹РїРѕР»РЅРµРЅРёСЏ РїСЂРѕРіСЂР°РјРјС‹
 
 
 int BINPROT_MAX_SIZE_OF_RECIEVED_PACKET=245;
@@ -112,16 +112,16 @@ int BINPROT_MAX_SIZE_OF_RECIEVED_PACKET=245;
  unsigned char* PreBuffer=NULL;
  unsigned char* NormalBuffer=NULL;
  unsigned short BufLen=0;
-//Информация хранится следующим образом:
+//РРЅС„РѕСЂРјР°С†РёСЏ С…СЂР°РЅРёС‚СЃСЏ СЃР»РµРґСѓСЋС‰РёРј РѕР±СЂР°Р·РѕРј:
 //
 // ....<Len_2><Header_2><Data....><Len_2><Header_2><Data....>....
 //     ^-BeginPtr                                            ^-EndPtr
 //
-// Буфер поделен на две части:
+// Р‘СѓС„РµСЂ РїРѕРґРµР»РµРЅ РЅР° РґРІРµ С‡Р°СЃС‚Рё:
 // PreLoadPack - size = BINPROT_MAX_SIZE_OF_RECIEVED_PACKET;
 // NormalPacks - size = BufLen-BINPROT_MAX_SIZE_OF_RECIEVED_PACKET;
 
-unsigned char BP_MY_SERIAL=0;	// принимаются все пакеты...
+unsigned char BP_MY_SERIAL=0;	// РїСЂРёРЅРёРјР°СЋС‚СЃСЏ РІСЃРµ РїР°РєРµС‚С‹...
 
 
 unsigned char* BeginPtr=NULL;
@@ -132,11 +132,11 @@ static int InternalBufPos=0;
 unsigned char *BP_InternalBuf=NULL;
 
 
-//Необходимо вызвать в качестве инициализации буфера - возвращает true если все параметры в норме и false если нет
+//РќРµРѕР±С…РѕРґРёРјРѕ РІС‹Р·РІР°С‚СЊ РІ РєР°С‡РµСЃС‚РІРµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё Р±СѓС„РµСЂР° - РІРѕР·РІСЂР°С‰Р°РµС‚ true РµСЃР»Рё РІСЃРµ РїР°СЂР°РјРµС‚СЂС‹ РІ РЅРѕСЂРјРµ Рё false РµСЃР»Рё РЅРµС‚
 static bool BP_SetReceiveBuffer(void *Buf,unsigned short Len,unsigned char MySerial)
 {
 	//if(MySerial == 255)return false;
-	//если MySerial == 255 прием только broadcast пакетов
+	//РµСЃР»Рё MySerial == 255 РїСЂРёРµРј С‚РѕР»СЊРєРѕ broadcast РїР°РєРµС‚РѕРІ
 	if(Len>2000)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 900;
 	if(Len<2000)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 600;
 	if(Len<1500)BINPROT_MAX_SIZE_OF_RECIEVED_PACKET = 450;
@@ -191,10 +191,10 @@ bool BP_Init_Protocol_InternalBuffer(void *Buf_receive,unsigned short Len_rec,un
 #define ROLB(c) {c=(c<<1) | ((c&0x80)?0x01:0);}
 
 
-//Способы расчета CRC... Есть разные способы, кроме оригинального CRC8 :)
-//Эти методы были протестированны на способность перехвата типичных ошибок канального уровня
-//лучшим оказался "mode 19"
-//сравение его с CRC8 в планах на будущее
+//РЎРїРѕСЃРѕР±С‹ СЂР°СЃС‡РµС‚Р° CRC... Р•СЃС‚СЊ СЂР°Р·РЅС‹Рµ СЃРїРѕСЃРѕР±С‹, РєСЂРѕРјРµ РѕСЂРёРіРёРЅР°Р»СЊРЅРѕРіРѕ CRC8 :)
+//Р­С‚Рё РјРµС‚РѕРґС‹ Р±С‹Р»Рё РїСЂРѕС‚РµСЃС‚РёСЂРѕРІР°РЅРЅС‹ РЅР° СЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ РїРµСЂРµС…РІР°С‚Р° С‚РёРїРёС‡РЅС‹С… РѕС€РёР±РѕРє РєР°РЅР°Р»СЊРЅРѕРіРѕ СѓСЂРѕРІРЅСЏ
+//Р»СѓС‡С€РёРј РѕРєР°Р·Р°Р»СЃСЏ "mode 19"
+//СЃСЂР°РІРµРЅРёРµ РµРіРѕ СЃ CRC8 РІ РїР»Р°РЅР°С… РЅР° Р±СѓРґСѓС‰РµРµ
 
 // mode 1
 //#define CRC_VARS 	unsigned char CRC_xor=0
@@ -211,7 +211,7 @@ bool BP_Init_Protocol_InternalBuffer(void *Buf_receive,unsigned short Len_rec,un
 //#define DoCRC(c) {ROL(CRC_xor);CRC_xor^= c;}
 //#define DoCRCFinal (((CRC_xor>>8)&0xff)^((CRC_xor)&0xff))
 
-//Лажа: mode 4
+//Р›Р°Р¶Р°: mode 4
 //#define CRC_VARS 	unsigned short CRC_xor=0;unsigned short CRC_add=0
 //#define DoCRC(c) {ROL(CRC_xor);CRC_xor^= c;}
 //#define DoCRCFinal (0)
@@ -325,7 +325,7 @@ void BP_SendPack(char Type,unsigned char Serial,const void *VData,unsigned short
 	const unsigned char *Data=VData;
 	//c_DebugPrint_LogC(clRed,"SendPack: Type=%c, Serial=%d, Len=%d",Type,Serial,Len);
 	//c_DebugPrint_LogC(clRed,"SendPack: sndchar=%p",GlobalSendChar);
-	if(TestSpecialSimvol((unsigned char)Type) || TestSpecialSimvol(Serial)){//не посылаем заведомо неисправный пакет
+	if(TestSpecialSimvol((unsigned char)Type) || TestSpecialSimvol(Serial)){//РЅРµ РїРѕСЃС‹Р»Р°РµРј Р·Р°РІРµРґРѕРјРѕ РЅРµРёСЃРїСЂР°РІРЅС‹Р№ РїР°РєРµС‚
 		log_printfc("Bad Sending Packet - ignore it!");
 		#ifdef DEBUGCRITICAL
 		{
@@ -387,7 +387,7 @@ void BP_SendPack(char Type,unsigned char Serial,const void *VData,unsigned short
 
 
 
-//Serial=BP_MY_SERIAL затем переработка пакета и отсылка его через GlobalSendChar
+//Serial=BP_MY_SERIAL Р·Р°С‚РµРј РїРµСЂРµСЂР°Р±РѕС‚РєР° РїР°РєРµС‚Р° Рё РѕС‚СЃС‹Р»РєР° РµРіРѕ С‡РµСЂРµР· GlobalSendChar
 void BP_SendMyPack(char Type,const void *Data,unsigned short Len)
 {
 	BP_SendPack(Type,BP_MY_SERIAL,Data,Len);
@@ -438,7 +438,7 @@ static void TestPacket(void)
 	//struct TBP_Header * header = ((struct TBP_Header*)PreBuffer);
 	unsigned char pack_serial = ((struct TBP_Header*)PreBuffer)->Serial;
 	//unsigned char pack_serial = header->Serial;
-	PrePtr--;//отсекаем CRC;
+	PrePtr--;//РѕС‚СЃРµРєР°РµРј CRC;
 	if(pack_serial != 255 && BP_MY_SERIAL && BP_MY_SERIAL!=pack_serial)return;
 	log_printf("BINPROTO","TEST - Normal Serial");
 
@@ -458,7 +458,7 @@ static void TestPacket(void)
 	#endif
 
 
-	if(PrePtr < PreBuffer){//Bad Packet (нет данных вообще)
+	if(PrePtr < PreBuffer){//Bad Packet (РЅРµС‚ РґР°РЅРЅС‹С… РІРѕРѕР±С‰Рµ)
 		log_printfc("Bad PrePtr");
 		return;
 	}
@@ -476,8 +476,8 @@ static void TestPacket(void)
 	#endif
 	log_printf("BINPROTO","TEST - Normal CRC");
 
-	// пакет подходит по всем параметрам, переносим его в нашу очередь
-	Len = PrePtr - PreBuffer;			//Длина пакета вместе с заголовком
+	// РїР°РєРµС‚ РїРѕРґС…РѕРґРёС‚ РїРѕ РІСЃРµРј РїР°СЂР°РјРµС‚СЂР°Рј, РїРµСЂРµРЅРѕСЃРёРј РµРіРѕ РІ РЅР°С€Сѓ РѕС‡РµСЂРµРґСЊ
+	Len = PrePtr - PreBuffer;			//Р”Р»РёРЅР° РїР°РєРµС‚Р° РІРјРµСЃС‚Рµ СЃ Р·Р°РіРѕР»РѕРІРєРѕРј
 	#ifdef DEBUG2
 	sprintf(DEBUG_buffer2,"INSERTB Begin=%d, End=%d, Len=%d",BeginPtr-NormalBuffer,EndPtr-NormalBuffer,Len);
 	log_printf2(DEBUG_buffer2);
@@ -492,8 +492,8 @@ static void TestPacket(void)
 		WAITSEND;
 		return;//Net mesta
 	}
-	if(BufLen - (EndPtr - NormalBuffer) < Len + 2 + 1 + 4){	//Нет места до конца буфера 4-метка рецикла буфера
-		//*(unsigned short*)EndPtr = 0xffff;	//указание что до конца буфера больше нет пакетов
+	if(BufLen - (EndPtr - NormalBuffer) < Len + 2 + 1 + 4){	//РќРµС‚ РјРµСЃС‚Р° РґРѕ РєРѕРЅС†Р° Р±СѓС„РµСЂР° 4-РјРµС‚РєР° СЂРµС†РёРєР»Р° Р±СѓС„РµСЂР°
+		//*(unsigned short*)EndPtr = 0xffff;	//СѓРєР°Р·Р°РЅРёРµ С‡С‚Рѕ РґРѕ РєРѕРЅС†Р° Р±СѓС„РµСЂР° Р±РѕР»СЊС€Рµ РЅРµС‚ РїР°РєРµС‚РѕРІ
 		WriteShort(EndPtr,0xffff);
 		EndTempPtr=NormalBuffer;
 		log_printf2("TEST - recycle buffer");
@@ -501,7 +501,7 @@ static void TestPacket(void)
 		if(BeginPtr - EndTempPtr < Len + 2 + 1) {
 			log_printfc("TEST - BUFFER OVERFLOW FROM RECYCLE!!!");
 			WAITSEND;
-			return;//не помещается
+			return;//РЅРµ РїРѕРјРµС‰Р°РµС‚СЃСЏ
 		}
 	}
 	log_printf("BINPROTO","TEST - place packet into buffer");
@@ -519,7 +519,7 @@ static void TestPacket(void)
 }
 
 
-//Должна вызываться при приеме байта где-то извне
+//Р”РѕР»Р¶РЅР° РІС‹Р·С‹РІР°С‚СЊСЃСЏ РїСЂРё РїСЂРёРµРјРµ Р±Р°Р№С‚Р° РіРґРµ-С‚Рѕ РёР·РІРЅРµ
 void BP_ReceiveChar(unsigned char c)
 {
 	if(!IsReceivingPack){
@@ -549,8 +549,8 @@ void BP_ReceiveChar(unsigned char c)
 			return;
 		}
 	}
-	//Режим приема заголовка и данных
-	if(c == BINPROT_EXT){//Конец пакета
+	//Р РµР¶РёРј РїСЂРёРµРјР° Р·Р°РіРѕР»РѕРІРєР° Рё РґР°РЅРЅС‹С…
+	if(c == BINPROT_EXT){//РљРѕРЅРµС† РїР°РєРµС‚Р°
 		log_printf("BINPROTO","END - EXT");
 		#ifdef BINPROT_BIG_PACKET
 		if(!LastSimvolDLE){
@@ -560,7 +560,7 @@ void BP_ReceiveChar(unsigned char c)
 		#endif
 		IsReceivingPack = false;
 		if(IgnoreThisPacket)return;
-		//Пакет принят, проверяем CRC, SERIAL и т.п.
+		//РџР°РєРµС‚ РїСЂРёРЅСЏС‚, РїСЂРѕРІРµСЂСЏРµРј CRC, SERIAL Рё С‚.Рї.
 		log_printf("BINPROTO","END - before test");
 		TestPacket();
 
@@ -584,7 +584,7 @@ void BP_ReceiveChar(unsigned char c)
 			*PrePtr++ = BINPROT_EXT;
 			return;
 		  //case BINPROT_EXT://Never this case!
-		  default://нарушение протокола
+		  default://РЅР°СЂСѓС€РµРЅРёРµ РїСЂРѕС‚РѕРєРѕР»Р°
 			log_printf("BINPROTO","LAST_DLE - bad simvol!");
 			IsReceivingPack=false;
 			return;
@@ -608,7 +608,7 @@ void BP_ReceiveChar(unsigned char c)
 
 }
 
-// NULL если целого пакета нет и адрес на начало пакета (после <DLE>), Len=общей длине
+// NULL РµСЃР»Рё С†РµР»РѕРіРѕ РїР°РєРµС‚Р° РЅРµС‚ Рё Р°РґСЂРµСЃ РЅР° РЅР°С‡Р°Р»Рѕ РїР°РєРµС‚Р° (РїРѕСЃР»Рµ <DLE>), Len=РѕР±С‰РµР№ РґР»РёРЅРµ
 const TBP_Pack* BP_GetPacket(unsigned short *Len)
 {
 	const TBP_Pack* ret;
@@ -628,7 +628,7 @@ const TBP_Pack* BP_GetPacket(unsigned short *Len)
 	return ret;
 }
 
-//аналогично предыдущему дает указатель на данные
+//Р°РЅР°Р»РѕРіРёС‡РЅРѕ РїСЂРµРґС‹РґСѓС‰РµРјСѓ РґР°РµС‚ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РґР°РЅРЅС‹Рµ
 const void * BP_GetData(char *Type, unsigned char *Serial, unsigned short *Len)
 {
 	const TBP_Pack *p=BP_GetPacket(Len);
@@ -644,7 +644,7 @@ const void * BP_GetData(char *Type, unsigned char *Serial, unsigned short *Len)
 	return p->Data;
 }
 
-//копирует пакет в место назначения, и удаляет его из очереди
+//РєРѕРїРёСЂСѓРµС‚ РїР°РєРµС‚ РІ РјРµСЃС‚Рѕ РЅР°Р·РЅР°С‡РµРЅРёСЏ, Рё СѓРґР°Р»СЏРµС‚ РµРіРѕ РёР· РѕС‡РµСЂРµРґРё
 TBP_Pack* BP_ExtractPacket(void *Mesto,unsigned short *Len)
 {
 	unsigned short PackLen,CLen,PLen;
@@ -663,7 +663,7 @@ TBP_Pack* BP_ExtractPacket(void *Mesto,unsigned short *Len)
 	return Mesto;
 }
 
-//аналогично предыдущему дает указатель на данные
+//Р°РЅР°Р»РѕРіРёС‡РЅРѕ РїСЂРµРґС‹РґСѓС‰РµРјСѓ РґР°РµС‚ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РґР°РЅРЅС‹Рµ
 void* BP_ExtractData(char *Type, unsigned char *Serial,void *Mesto,unsigned short *Len)
 {
 	unsigned short PackLen,CLen,PLen;
@@ -695,8 +695,8 @@ void* BP_ExtractData(char *Type, unsigned char *Serial,void *Mesto,unsigned shor
 
 
 
-//общее
-void BP_DropOnePacket(void)	//следует вызывать после обработки пакета после функций BP_GetPacket, BP_GetData
+//РѕР±С‰РµРµ
+void BP_DropOnePacket(void)	//СЃР»РµРґСѓРµС‚ РІС‹Р·С‹РІР°С‚СЊ РїРѕСЃР»Рµ РѕР±СЂР°Р±РѕС‚РєРё РїР°РєРµС‚Р° РїРѕСЃР»Рµ С„СѓРЅРєС†РёР№ BP_GetPacket, BP_GetData
 {
 	unsigned short Len=ReadShort(BeginPtr);
 
@@ -719,7 +719,7 @@ void BP_DropOnePacket(void)	//следует вызывать после обработки пакета после функ
 
 }
 
-void BP_ClearBuffer(void)	//зануляет буфер
+void BP_ClearBuffer(void)	//Р·Р°РЅСѓР»СЏРµС‚ Р±СѓС„РµСЂ
 {
 	BeginPtr = EndPtr;
 }
