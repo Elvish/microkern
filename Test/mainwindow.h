@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+п»ї#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -22,26 +22,26 @@ public:
 private slots:
 
 
-    void acceptConnection();//Для подключения ребенка
-    void ReadFromChild();//Для чтения родителем ребенка
-    void ReadFromParent();//для чтения ребенком родителя
-    void displayError(QAbstractSocket::SocketError);//пишем ошибки при работе с сетью
+    void acceptConnection();//Р”Р»СЏ РїРѕРґРєР»СЋС‡РµРЅРёСЏ СЂРµР±РµРЅРєР°
+    void ReadFromChild();//Р”Р»СЏ С‡С‚РµРЅРёСЏ СЂРѕРґРёС‚РµР»РµРј СЂРµР±РµРЅРєР°
+    void ReadFromParent();//РґР»СЏ С‡С‚РµРЅРёСЏ СЂРµР±РµРЅРєРѕРј СЂРѕРґРёС‚РµР»СЏ
+    void displayError(QAbstractSocket::SocketError);//РїРёС€РµРј РѕС€РёР±РєРё РїСЂРё СЂР°Р±РѕС‚Рµ СЃ СЃРµС‚СЊСЋ
 
 
     void on_pushButtonClear_clicked();
     void on_ButtonSendRubbish_clicked();
 
 public:
-    //Запись в сокет потока данных
+    //Р—Р°РїРёСЃСЊ РІ СЃРѕРєРµС‚ РїРѕС‚РѕРєР° РґР°РЅРЅС‹С…
     void writeToOtherSlow(const  char *data,int len);
-    //то же, чтобы без заморочек с приведением типов
+    //С‚Рѕ Р¶Рµ, С‡С‚РѕР±С‹ Р±РµР· Р·Р°РјРѕСЂРѕС‡РµРє СЃ РїСЂРёРІРµРґРµРЅРёРµРј С‚РёРїРѕРІ
     void writeToOtherSlow(const unsigned char *data,int len);
 
-    //Пишем сообщение на форму для отладки
+    //РџРёС€РµРј СЃРѕРѕР±С‰РµРЅРёРµ РЅР° С„РѕСЂРјСѓ РґР»СЏ РѕС‚Р»Р°РґРєРё
     void writeLog(QString what, QString message);
 
-    //Обобщенная функция чтения из сокета.
-    //Все полученное передает в receiveOneByte
+    //РћР±РѕР±С‰РµРЅРЅР°СЏ С„СѓРЅРєС†РёСЏ С‡С‚РµРЅРёСЏ РёР· СЃРѕРєРµС‚Р°.
+    //Р’СЃРµ РїРѕР»СѓС‡РµРЅРЅРѕРµ РїРµСЂРµРґР°РµС‚ РІ receiveOneByte
     void ReadFromSocket(QTcpSocket *sock);
 
 private:
@@ -54,9 +54,9 @@ private:
     QTcpSocket *tcpClient;
     QTcpSocket *tcpServerConnection;
 
-    //Инициализация BinProtocol
+    //РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ BinProtocol
     void initBinProtocol();
-    //Передает новый символ в BinProtocol
+    //РџРµСЂРµРґР°РµС‚ РЅРѕРІС‹Р№ СЃРёРјРІРѕР» РІ BinProtocol
     void receiveOneByte(char b);
 };
 

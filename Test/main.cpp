@@ -1,4 +1,4 @@
-#include <QtGui/QApplication>
+п»ї#include <QtGui/QApplication>
 #include <QtCore>
 //#include <QTcpServer>
 #include <QtNetwork\QTcpServer>
@@ -6,12 +6,12 @@
 #include "mainwindow.h"
 #include <QMessageBox>
 
-//Чтобы без заморочек ссылаться на наше окошко
+//Р§С‚РѕР±С‹ Р±РµР· Р·Р°РјРѕСЂРѕС‡РµРє СЃСЃС‹Р»Р°С‚СЊСЃСЏ РЅР° РЅР°С€Рµ РѕРєРѕС€РєРѕ
 MainWindow *LinkToSendClass=NULL;
 
 int main(int argc, char *argv[])
 {
-    //Подрубаем кириллицу
+    //РџРѕРґСЂСѓР±Р°РµРј РєРёСЂРёР»Р»РёС†Сѓ
     QTextCodec::setCodecForLocale( QTextCodec::codecForName("ANSI") );
     QTextCodec::setCodecForCStrings( QTextCodec::codecForLocale() );
     QTextCodec::setCodecForTr( QTextCodec::codecForLocale() );
@@ -28,12 +28,12 @@ int main(int argc, char *argv[])
 
     QHostAddress host = QHostAddress::Any;//localHost;
     quint16 port=0;
-    QProcess me;//когда кончится область видимости - тогда и прога канет всуе
+    QProcess me;//РєРѕРіРґР° РєРѕРЅС‡РёС‚СЃСЏ РѕР±Р»Р°СЃС‚СЊ РІРёРґРёРјРѕСЃС‚Рё - С‚РѕРіРґР° Рё РїСЂРѕРіР° РєР°РЅРµС‚ РІСЃСѓРµ
 
 
     if(!myarg.contains("-child")){
-        //Мы родитель или сервер
-        //Открывает сокет, запускаем ребенка
+        //РњС‹ СЂРѕРґРёС‚РµР»СЊ РёР»Рё СЃРµСЂРІРµСЂ
+        //РћС‚РєСЂС‹РІР°РµС‚ СЃРѕРєРµС‚, Р·Р°РїСѓСЃРєР°РµРј СЂРµР±РµРЅРєР°
         QStringList argums;
         argums << "-child";
         qDebug()<<"We are parent...";
@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
 
         qDebug()<<argums;
 
-        //С этим ключем мы не запускаем ребенка
+        //РЎ СЌС‚РёРј РєР»СЋС‡РµРј РјС‹ РЅРµ Р·Р°РїСѓСЃРєР°РµРј СЂРµР±РµРЅРєР°
         if(!myarg.contains("-didicated"))me.start(a.applicationFilePath(),argums);
         me.waitForStarted(1000);
 
-        //спим 100 мс, чтобы наше окно было созданно позже
+        //СЃРїРёРј 100 РјСЃ, С‡С‚РѕР±С‹ РЅР°С€Рµ РѕРєРЅРѕ Р±С‹Р»Рѕ СЃРѕР·РґР°РЅРЅРѕ РїРѕР·Р¶Рµ
         //QEventLoop loop;
         //QTimer::singleShot(100, &loop, SLOT(quit()));
         //loop.exec();
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        //спим 100 мс, чтобы наше окно было созданно позже
+        //СЃРїРёРј 100 РјСЃ, С‡С‚РѕР±С‹ РЅР°С€Рµ РѕРєРЅРѕ Р±С‹Р»Рѕ СЃРѕР·РґР°РЅРЅРѕ РїРѕР·Р¶Рµ
         QEventLoop loop;
         QTimer::singleShot(100, &loop, SLOT(quit()));
         loop.exec();
@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
     LinkToSendClass = &w;
     w.show();
 
-    //пишем порт, который слушаем на форму, чтобы знать как подключаться
+    //РїРёС€РµРј РїРѕСЂС‚, РєРѕС‚РѕСЂС‹Р№ СЃР»СѓС€Р°РµРј РЅР° С„РѕСЂРјСѓ, С‡С‚РѕР±С‹ Р·РЅР°С‚СЊ РєР°Рє РїРѕРґРєР»СЋС‡Р°С‚СЊСЃСЏ
     w.writeLog("INIT",QString("Port:%1").arg(tcpServer.serverPort()));
 
-    //воссоздаем семью из ребенка безпризорника и родителя партеногенезника
+    //РІРѕСЃСЃРѕР·РґР°РµРј СЃРµРјСЊСЋ РёР· СЂРµР±РµРЅРєР° Р±РµР·РїСЂРёР·РѕСЂРЅРёРєР° Рё СЂРѕРґРёС‚РµР»СЏ РїР°СЂС‚РµРЅРѕРіРµРЅРµР·РЅРёРєР°
     if(isChild)tcpClient.connectToHost(host, port);
 
 

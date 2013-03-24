@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+п»ї#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDateTime>
 #include <QtCore>
@@ -18,9 +18,9 @@ MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpCl
     tcpServerConnection = NULL;
     ui->setupUi(this);
     ui->tableWidget->setColumnCount(3);
-    ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem(tr("Время")));
-    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem(tr("Что")));
-    ui->tableWidget->setHorizontalHeaderItem(2,new QTableWidgetItem(tr("Сообщение")));
+    ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem(tr("Р’СЂРµРјСЏ")));
+    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem(tr("Р§С‚Рѕ")));
+    ui->tableWidget->setHorizontalHeaderItem(2,new QTableWidgetItem(tr("РЎРѕРѕР±С‰РµРЅРёРµ")));
     ui->tableWidget->setColumnWidth(0, 60);
     ui->tableWidget->setColumnWidth(1, 40);
     ui->tableWidget->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
@@ -30,10 +30,10 @@ MainWindow::MainWindow(bool _isChild, QTcpServer *_TcpServer, QTcpSocket *_TcpCl
     setGeometry(np);
     //move(pos().x + (isChild?1:0)*(10 + frameGeometry().width()), pos().y());
 
-    //Инициализация BinProtocol
+    //РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ BinProtocol
     initBinProtocol();
 
-    //Настраиваем сокеты
+    //РќР°СЃС‚СЂР°РёРІР°РµРј СЃРѕРєРµС‚С‹
     if(tcpServer)connect(tcpServer, SIGNAL(newConnection()),this, SLOT(acceptConnection()));
     if(tcpClient)connect(tcpClient, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(displayError(QAbstractSocket::SocketError)));
     if(tcpClient)connect(tcpClient, SIGNAL(readyRead()),this, SLOT(ReadFromParent()));
@@ -61,7 +61,7 @@ void MainWindow::writeLog(QString what, QString message)
 
 void MainWindow::on_ButtonSendRubbish_clicked()
 {
-    //вот такой вот нынче мусор
+    //РІРѕС‚ С‚Р°РєРѕР№ РІРѕС‚ РЅС‹РЅС‡Рµ РјСѓСЃРѕСЂ
     QString t = "BugagaText";
     writeToOtherSlow(t.toAscii(),strlen(t.toAscii()));
 }
@@ -91,7 +91,7 @@ void MainWindow::ReadFromSocket(QTcpSocket *sock)
     char data[2048];
     int s = sock->read(data,sizeof(data)-1);
 
-    //Передача полученных байт в бин-протокол через посредника receiveOneByte
+    //РџРµСЂРµРґР°С‡Р° РїРѕР»СѓС‡РµРЅРЅС‹С… Р±Р°Р№С‚ РІ Р±РёРЅ-РїСЂРѕС‚РѕРєРѕР» С‡РµСЂРµР· РїРѕСЃСЂРµРґРЅРёРєР° receiveOneByte
     for(int i=0;i<s;i++){
         if(ui->checkBoxShowBytes->checkState() == Qt::Checked)writeLog("Read",QString("< 0x%1").arg((int)(unsigned char)data[i],2,16,QLatin1Char( '0' )));
         receiveOneByte(data[i]);
@@ -102,8 +102,8 @@ void MainWindow::displayError(QAbstractSocket::SocketError socketError)
 {
     if (socketError == QTcpSocket::RemoteHostClosedError) return;
 
-    QMessageBox::information(this, tr("Сетевая ошибка"),
-                             tr("Непонятки с сокетами: %1.")
+    QMessageBox::information(this, tr("РЎРµС‚РµРІР°СЏ РѕС€РёР±РєР°"),
+                             tr("РќРµРїРѕРЅСЏС‚РєРё СЃ СЃРѕРєРµС‚Р°РјРё: %1.")
                              .arg(tcpClient->errorString()));
 
     tcpClient->close();
@@ -119,10 +119,10 @@ void MainWindow::writeToOtherSlow(const char *data, int len)
             writeLog("Send",QString("> 0x%2 (%1)").arg(len).arg((int)(unsigned char)*data,2,16,QLatin1Char( '0' )));
         }
         sock->write(data++,1);
-        //Отправляем по одному символу сразу, для "усложнения" разгребания пакетов
+        //РћС‚РїСЂР°РІР»СЏРµРј РїРѕ РѕРґРЅРѕРјСѓ СЃРёРјРІРѕР»Сѓ СЃСЂР°Р·Сѓ, РґР»СЏ "СѓСЃР»РѕР¶РЅРµРЅРёСЏ" СЂР°Р·РіСЂРµР±Р°РЅРёСЏ РїР°РєРµС‚РѕРІ
         sock->flush();
 
-        //При желании можно сделать передачу медленной...
+        //РџСЂРё Р¶РµР»Р°РЅРёРё РјРѕР¶РЅРѕ СЃРґРµР»Р°С‚СЊ РїРµСЂРµРґР°С‡Сѓ РјРµРґР»РµРЅРЅРѕР№...
         //QEventLoop loop;
         //QTimer::singleShot(10, &loop, SLOT(quit()));
         //loop.exec();
@@ -142,14 +142,14 @@ void MainWindow::on_pushButtonClear_clicked()
 
 
 //--------------------------------------------------------------------
-// Собственно нижний уровень работы с BinProtocol
+// РЎРѕР±СЃС‚РІРµРЅРЅРѕ РЅРёР¶РЅРёР№ СѓСЂРѕРІРµРЅСЊ СЂР°Р±РѕС‚С‹ СЃ BinProtocol
 //--------------------------------------------------------------------
 
-//Выделяемая для BinProtocol память.
+//Р’С‹РґРµР»СЏРµРјР°СЏ РґР»СЏ BinProtocol РїР°РјСЏС‚СЊ.
 static char receivedBuffer[1024];
 
-//Грязный хак перехода от классовой модели к функциональной-контроллерной
-//глобвальная переменная с указателем на класс, могущий переслать данные
+//Р“СЂСЏР·РЅС‹Р№ С…Р°Рє РїРµСЂРµС…РѕРґР° РѕС‚ РєР»Р°СЃСЃРѕРІРѕР№ РјРѕРґРµР»Рё Рє С„СѓРЅРєС†РёРѕРЅР°Р»СЊРЅРѕР№-РєРѕРЅС‚СЂРѕР»Р»РµСЂРЅРѕР№
+//РіР»РѕР±РІР°Р»СЊРЅР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ СЃ СѓРєР°Р·Р°С‚РµР»РµРј РЅР° РєР»Р°СЃСЃ, РјРѕРіСѓС‰РёР№ РїРµСЂРµСЃР»Р°С‚СЊ РґР°РЅРЅС‹Рµ
 extern MainWindow *LinkToSendClass;
 
 
@@ -160,17 +160,17 @@ void globalSendCharToExternal(unsigned char c)
 
 void MainWindow::initBinProtocol()
 {
-    //Будут приниматься пакеты только с адресом 1 или 255.
+    //Р‘СѓРґСѓС‚ РїСЂРёРЅРёРјР°С‚СЊСЃСЏ РїР°РєРµС‚С‹ С‚РѕР»СЊРєРѕ СЃ Р°РґСЂРµСЃРѕРј 1 РёР»Рё 255.
     int serial = 1;
 
-    //Необходимо вызвать в качестве инициализации буфера, серийника, отсылающей функции - возвращает true если все параметры в норме и false если нет
-    //основная инициализирующая функция. На входе буфер для приема пакетов, серийник и отсылающая функция
+    //РќРµРѕР±С…РѕРґРёРјРѕ РІС‹Р·РІР°С‚СЊ РІ РєР°С‡РµСЃС‚РІРµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё Р±СѓС„РµСЂР°, СЃРµСЂРёР№РЅРёРєР°, РѕС‚СЃС‹Р»Р°СЋС‰РµР№ С„СѓРЅРєС†РёРё - РІРѕР·РІСЂР°С‰Р°РµС‚ true РµСЃР»Рё РІСЃРµ РїР°СЂР°РјРµС‚СЂС‹ РІ РЅРѕСЂРјРµ Рё false РµСЃР»Рё РЅРµС‚
+    //РѕСЃРЅРѕРІРЅР°СЏ РёРЅРёС†РёР°Р»РёР·РёСЂСѓСЋС‰Р°СЏ С„СѓРЅРєС†РёСЏ. РќР° РІС…РѕРґРµ Р±СѓС„РµСЂ РґР»СЏ РїСЂРёРµРјР° РїР°РєРµС‚РѕРІ, СЃРµСЂРёР№РЅРёРє Рё РѕС‚СЃС‹Р»Р°СЋС‰Р°СЏ С„СѓРЅРєС†РёСЏ
     bool res = BP_Init_Protocol(receivedBuffer,sizeof(receivedBuffer),serial,globalSendCharToExternal);
     writeLog("INIT",res?"Ok":"Fail");
 
 }
 
-//Передача потока байт в BinProtocol
+//РџРµСЂРµРґР°С‡Р° РїРѕС‚РѕРєР° Р±Р°Р№С‚ РІ BinProtocol
 void MainWindow::receiveOneByte(char b)
 {
     BP_ReceiveChar(b);
