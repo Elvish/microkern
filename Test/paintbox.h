@@ -1,4 +1,4 @@
-#ifndef PAINTBOX_H
+п»ї#ifndef PAINTBOX_H
 #define PAINTBOX_H
 
 #include <QWidget>
@@ -11,7 +11,7 @@ class PaintBox : public QWidget
     Q_OBJECT
 public:
 
-    //Основной объект с которым оперируем
+    //РћСЃРЅРѕРІРЅРѕР№ РѕР±СЉРµРєС‚ СЃ РєРѕС‚РѕСЂС‹Рј РѕРїРµСЂРёСЂСѓРµРј
     struct HoldObject{
         int x,y;
         int radius;
@@ -34,29 +34,29 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
 
-    //Рисуем все объекты в указанной области
+    //Р РёСЃСѓРµРј РІСЃРµ РѕР±СЉРµРєС‚С‹ РІ СѓРєР°Р·Р°РЅРЅРѕР№ РѕР±Р»Р°СЃС‚Рё
     void drawObjects(QPainter *qp, const QRect &rect);
-    //Рисуем палитру
+    //Р РёСЃСѓРµРј РїР°Р»РёС‚СЂСѓ
     void drawPalitra(QPainter *qp);
 
-    //Отрисовка конкретного объекта на Painter
+    //РћС‚СЂРёСЃРѕРІРєР° РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ РѕР±СЉРµРєС‚Р° РЅР° Painter
     void drawOneObject(QPainter *qp,HoldObject &obj);
 
-    //Дает цвет палитры в зависимости от координат
+    //Р”Р°РµС‚ С†РІРµС‚ РїР°Р»РёС‚СЂС‹ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РєРѕРѕСЂРґРёРЅР°С‚
     QColor getColorByXY(int x, int y);
 
-    //Вызывает событие обновления графики в окресности данного объекта
+    //Р’С‹Р·С‹РІР°РµС‚ СЃРѕР±С‹С‚РёРµ РѕР±РЅРѕРІР»РµРЅРёСЏ РіСЂР°С„РёРєРё РІ РѕРєСЂРµСЃРЅРѕСЃС‚Рё РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
     void updateNearObject(HoldObject &obj);
 
-    //Список всех нарисованных объектов
+    //РЎРїРёСЃРѕРє РІСЃРµС… РЅР°СЂРёСЃРѕРІР°РЅРЅС‹С… РѕР±СЉРµРєС‚РѕРІ
     ListHoldObjects listHO;
-    //Таймер увеличения круга
+    //РўР°Р№РјРµСЂ СѓРІРµР»РёС‡РµРЅРёСЏ РєСЂСѓРіР°
     QTimer *timerPress;
 
-    //Текущий увеличиваемый объект
+    //РўРµРєСѓС‰РёР№ СѓРІРµР»РёС‡РёРІР°РµРјС‹Р№ РѕР±СЉРµРєС‚
     HoldObject currentObject;
 
-    //Пишет лог на главную форму
+    //РџРёС€РµС‚ Р»РѕРі РЅР° РіР»Р°РІРЅСѓСЋ С„РѕСЂРјСѓ
     void writeLog(QString what, QString message);
 };
 
