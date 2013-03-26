@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         qDebug()<<argums;
 
         //С этим ключем мы не запускаем ребенка
-        if(!myarg.contains("-didicated"))me.start(a.applicationFilePath(),argums);
+        if(!myarg.contains("-dedicated"))me.start(a.applicationFilePath(),argums);
         me.waitForStarted(1000);
 
         me.open(QIODevice::ReadWrite);
